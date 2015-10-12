@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Place searches</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+    <script>
+
+      var rad = function(x) {
+        return x * Math.PI / 180;
+      };
+
+      var getDistance = function(p1, p2) {
+        var R = 6378137; // Earth’s mean radius in meter
+        var dLat = rad(p2["lat"] - p1["lat"]);
+        var dLong = rad(p2["lng"] - p1["lng"]);
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(rad(p1["lat"])) * Math.cos(rad(p2["lat"])) *
+          Math.sin(dLong / 2) * Math.sin(dLong / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c;
+        return d; // returns the distance in meter
+      };
+
+      function sortNumber(a,b) {
+          return a - b;
+      }
+
+      var user_loc;
+
+      function getLocation() {
+          if (navigator.geolocation) {
+              user_loc = navigator.geolocation.getCurrentPosition(function(results){
+                console.log(results)
+              });
+          } else {
+              console.log = "Geolocation is not supported by this browser.";
+          }
+
+          initMap();
+      }
+
+      function initMap() {
+        pyrmont = {lat: 51.528684, lng: -0.0377188};
+
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: pyrmont,
+          zoom: 15
+        });
+
+        infowindow = new google.maps.InfoWindow();
+
+        var service = new google.maps.places.PlacesService(map);
+        service.nearbySearch({
+          location: pyrmont,
+          radius: 282,
+          types: ['accounting', 'airport', 'amusement_park', 'aquarium', 'art_gallery', 'atm', 'bakery', 'bank', 'bar', 'beauty_salon', 'bicycle_store', 'book_store', 'bowling_alley', 'bus_station', 'cafe', 'campground', 'car_dealer', 'car_rental', 'car_repair', 'car_wash', 'casino', 'cemetery', 'church', 'city_hall', 'clothing_store', 'convenience_store', 'courthouse', 'dentist', 'department_store', 'doctor', 'electrician', 'electronics_store', 'embassy', 'establishment', 'finance', 'fire_station', 'florist', 'food', 'funeral_home', 'furniture_store', 'gas_station', 'general_contractor', 'grocery_or_supermarket', 'gym', 'hair_care', 'hardware_store', 'health', 'hindu_temple', 'home_goods_store', 'hospital', 'insurance_agency', 'jewelry_store', 'laundry', 'lawyer', 'library', 'liquor_store', 'local_government_office', 'locksmith', 'lodging', 'meal_delivery', 'meal_takeaway', 'mosque', 'movie_rental', 'movie_theater', 'moving_company', 'museum', 'night_club', 'painter', 'park', 'parking', 'pet_store', 'pharmacy', 'physiotherapist', 'place_of_worship', 'plumber', 'police', 'post_office', 'real_estate_agency', 'restaurant', 'roofing_contractor', 'rv_park', 'school', 'shoe_store', 'shopping_mall', 'spa', 'stadium', 'storage', 'store', 'subway_station', 'synagogue', 'taxi_stand', 'train_station', 'travel_agency', 'university', 'veterinary_care', 'zoo'],
+          rankby: 'distance',
+        }, callback);
+      }
+
+      function callback(results, status) {
+        var distances = [];
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          for(var i=0;i<results.length;i++) {
+            var place = {lat: results[i].geometry.location["J"], lng: results[i].geometry.location["M"]};
+            var distance = Math.floor(getDistance(pyrmont, place));
+            var difference = {dist: Math.abs(141 - distance), indx: i};
+            distances.push(difference);
+          }
+          distances.sort(sortNumber);
+          alert("In your universe Mars is near " + results[distances[0].indx].name + " give or take " +distances[0].dist + " meters or in the real universe " + distances[0].dist + " million miles");
+        }
+      }
+
+    </script>
+  </head>
+  <body>
+    <main id="map"></main>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDqYiFb9aZjkejGbbPuSEfcD_6gwGrOXrM&signed_in=true&libraries=places&callback=getLocation" async defer></script>
+  </body>
+</html>
